@@ -65,20 +65,15 @@ module onepulse (pb_debounced, clk, pb_1pulse);
     end
 endmodule
 
-module lab05(clk, rst, money_5, money_10, cancel,check, count_down, LED, DIGIT, DISPLAY);//drink_A, drink_B, drop_money, enough_A, enough_B,
+module lab05(clk, rst, money_5, money_10, cancel,check, count_down, LED, DIGIT, DISPLAY);
     input clk;
     input rst;
     input money_5;
     input money_10;
     input cancel;
-    // input drink_A;
-    // input drink_B;
     input check;
     input count_down;
     output reg [15:0] LED;
-    // output reg[9:0] drop_money;
-    // output reg enough_A;
-    // output reg enough_B;
     output reg [3:0] DIGIT;
     output reg [6:0] DISPLAY;
     
@@ -87,20 +82,18 @@ module lab05(clk, rst, money_5, money_10, cancel,check, count_down, LED, DIGIT, 
     wire ten_bounce, ten_pulse;
     wire check_bounce, check_pulse;
     wire count_bounce, count_pulse;
-    // wire drinkA_bounce, drinkA_pulse;
-    // wire drinkB_bounce, drinkB_pulse;
     wire cancel_bounce, cancel_pulse;
     
-    reg one_pulse; // state_clk
+    reg one_pulse,one_pulse2; // state_clk
     wire state_clk;
-    reg [3:0] AN0, AN1, AN2, AN3, next_AN0, next_AN1, next_AN2, next_AN3, temp_AN0, temp_AN1;
+    reg [3:0] AN0, AN1, AN2, AN3, next_AN0, next_AN1, next_AN2, next_AN3, temp_AN0, temp_AN1,temp_AN2,temp_AN3,max, next_max, max_temp,min, BALANCE;
     reg [3:0] value;
-    reg [2:0] state, next_state, buy_A, next_buy_A; // , buy_A, next_buy_A, buy_B, next_buy_B
-    // reg [9:0] next_drop_money;
+    reg [2:0] state, next_state, buy_A, next_buy_A; 
     reg [29:0] ms_count;
+    reg [29:0] ms_count2;
     reg flag_remaining ;
-    reg max, next_max;
-    reg min, next_min;
+    
+    
     
     clock_divider #(13) cdiv1(.clk(clk), .clk_div(clk_div_13));
     clock_divider #(16) cdiv2(.clk(clk), .clk_div(clk_div_16));
@@ -109,8 +102,6 @@ module lab05(clk, rst, money_5, money_10, cancel,check, count_down, LED, DIGIT, 
     //debounce
     debounce debounce1(.pb_debounced(five_bounce), .pb(money_5), .clk(clk_div_16));
     debounce debounce2(.pb_debounced(ten_bounce), .pb(money_10), .clk(clk_div_16));
-    // debounce debounce3(.pb_debounced(drinkA_bounce), .pb(drink_A), .clk(clk_div_16));
-    // debounce debounce4(.pb_debounced(drinkB_bounce), .pb(drink_B), .clk(clk_div_16));
     debounce debounce3(.pb_debounced(check_bounce), .pb(check), .clk(clk_div_16));
     debounce debounce4(.pb_debounced(count_bounce), .pb(count_down), .clk(clk_div_16));
     debounce debounce5(.pb_debounced(cancel_bounce), .pb(cancel), .clk(clk_div_16));
@@ -119,8 +110,6 @@ module lab05(clk, rst, money_5, money_10, cancel,check, count_down, LED, DIGIT, 
     //onepulse
     onepulse onepulse1(.pb_debounced(five_bounce), .clk(clk_div_16), .pb_1pulse(five_pulse));
     onepulse onepulse2(.pb_debounced(ten_bounce), .clk(clk_div_16), .pb_1pulse(ten_pulse));
-    // onepulse onepulse3(.pb_debounced(drinkA_bounce), .clk(clk_div_16), .pb_1pulse(drinkA_pulse));
-    // onepulse onepulse4(.pb_debounced(drinkB_bounce), .clk(clk_div_16), .pb_1pulse(drinkB_pulse));
     onepulse onepulse3(.pb_debounced(check_bounce), .clk(clk_div_16), .pb_1pulse(check_pulse));
     onepulse onepulse4(.pb_debounced(count_bounce), .clk(clk_div_16), .pb_1pulse(count_pulse));
     onepulse onepulse5(.pb_debounced(cancel_bounce), .clk(clk_div_16), .pb_1pulse(cancel_pulse));
@@ -131,40 +120,16 @@ module lab05(clk, rst, money_5, money_10, cancel,check, count_down, LED, DIGIT, 
             ms_count <= 0;
             one_pulse <= 1;
         end
-        else if(five_pulse || ten_pulse || count_pulse || check_pulse || cancel_pulse || state != `DEPOSIT) begin // || drinkA_pulse || drinkB_pulse
+        else if(five_pulse || ten_pulse || count_pulse || check_pulse || cancel_pulse || state != `DEPOSIT) begin 
             ms_count <= 0;
         end
         else begin
             ms_count <= ms_count + 1;
         end
     end
-    
-    // always@(posedge clk) begin
-    //     if(state == `INITIAL) begin
-    //         state_clk = clk_div_16;
-    //     end
-    //     else begin
-    //         if(state == `DEPOSIT) begin
-    //             state_clk = clk_div_16;
-    //         end 
-    //         else begin
-    //             if(state == `BUY) begin
-    //                 state_clk = clk_div_27;
-    //             end
-    //             else begin
-    //                 if(state == `CHANGE) begin
-    //                     state_clk = clk_div_27;
-    //                 end
-    //             end
-    //         end
-    //     end
-    // end
-
+       
 assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) ? clk_div_16 : clk_div_27;
-   
-
-   
-    
+      
     always@(posedge clk or posedge rst) begin
         if(rst) begin
             AN0 <= 4'd0;
@@ -172,7 +137,6 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
             AN2 <= 4'd0;
             AN3 <= 4'd0;
             buy_A <= 4'd0;
-            //buy_B <= 4'd0;
             max <=0;
             state <= `INITIAL;
         end
@@ -182,21 +146,11 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
             AN2 <= next_AN2;
             AN3 <= next_AN3;
             buy_A <= next_buy_A;
-            // buy_B <= next_buy_B;
-            max <= next_max;            
+            max <= next_max-1;            
             state <= next_state;
         end
     end
-    
-    // always@(posedge clk_div_27) begin
-    //     if(rst) begin
-    //         drop_money <= {10{1'b0}};
-    //     end
-    //     else begin
-    //         drop_money <= next_drop_money;
-    //     end
-    // end
-    
+      
     always@(posedge clk_div_13) begin
         case(DIGIT)
             4'b1110: begin
@@ -254,11 +208,7 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
                 next_AN3 = 4'd0;
                 next_state = `DEPOSIT;
                 LED = 16'h0000;
-                // enough_A = 1'd0;
-                // enough_B = 1'd0;
                 next_buy_A = 3'd0;
-                // next_buy_B = 2'd0;
-                // next_drop_money = {10{1'b0}};
             end
             `DEPOSIT: begin
                 if(ten_pulse) begin
@@ -271,14 +221,20 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
                     else if(AN1 == 4'd4 && AN0 == 4'd5) begin
                         next_AN0 = 4'd0;
                         next_AN1 = 4'd5;
-                        next_AN2 = 4'd9; // AN2
+                        next_AN2 = 4'd9; 
                         next_AN3 = AN3;
                         flag_remaining = 1'b1;
+                    end
+                    else if(AN1 == 4'd4 && AN0 == 4'd0) begin
+                        next_AN0 = 4'd0;
+                        next_AN1 = 4'd5;
+                        next_AN2 = 4'd9; 
+                        next_AN3 = AN3;
                     end
                     else begin
                         next_AN0 = AN0;
                         next_AN1 = AN1 + 4'd1;
-                        next_AN2 = (((AN1 + 4'd1)) * 10) + AN0) / 5; // AN2
+                        next_AN2 = (((AN1 + 4'd1) * 10) + AN0) / 5; 
                         next_AN3 = AN3;
                     end
                 end
@@ -289,16 +245,22 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
                         next_AN2 = AN2;
                         next_AN3 = AN3;
                     end
+                    else if(AN1 == 4'd4 && AN0 == 4'd5) begin
+                        next_AN0 = 4'd0;
+                        next_AN1 = 4'd5;
+                        next_AN2 = 4'd9; 
+                        next_AN3 = AN3;
+                    end
                     else if(AN0 == 4'd5) begin
                         next_AN0 = 4'd0;
                         next_AN1 = AN1 + 4'd1;
-                        next_AN2 = (((AN1 + 4'd1) * 10) + AN0)/5; // AN2
+                        next_AN2 = ((AN1 + 4'd1) * 10)/5; 
                         next_AN3 = AN3;
                     end
                     else begin
                         next_AN0 = AN0 + 4'd5;
                         next_AN1 = AN1;
-                        next_AN2 = (((AN1 + 4'd1) * 10) + (AN0 + 4'd5)))/5; // AN2
+                        next_AN2 = (((AN1  * 10) + (AN0 + 4'd5)))/5; 
                         next_AN3 = AN3;
                     end
                 end
@@ -309,140 +271,81 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
                     next_AN3 = AN3;
                 end
 
-                // if(AN1 >= 4'd3 || (AN1 >= 4'd2 && AN0 >= 4'd5)) begin // PC
-                //     enough_A = 1'd1;
-                //     enough_B = 1'd1;
-                // end
-                // else if(AN1 >= 4'd2 && AN0 >= 4'd0)begin
-                //     enough_A = 1'd1;
-                //     enough_B = 1'd0;
-                // end
-                // else begin
-                //     enough_A = 1'd0;
-                //     enough_B = 1'd0;
-                // end
-                
-                if(cancel_pulse || one_pulse) begin
+                if(cancel_pulse || one_pulse) begin 
                     next_state = `CHANGE;
-                    // enough_A = 1'd0;
-                    // enough_B = 1'd0;
                     temp_AN0 = AN0;
                     temp_AN1 = AN1;
                 end
-                else if(buy_A == 3'd1 ) begin // || buy_B == 2'd2
-                    next_state = `AMOUNT;
-                    // enough_A = 1'd0;
-                    // enough_B = 1'd0;
+                else if(buy_A == 3'd1 ) begin 
+                    next_state = `AMOUNT; 
+                    temp_AN2 = AN2;               
                 end
                 else begin
                     next_state = state;
-                    // enough_A = enough_A;
-                    // enough_B = enough_B;
                 end
                 
-                if(check_pulse) begin
+               if(check_pulse) begin
                      if(AN1 >=1 || AN0 > 0) begin
-                         next_buy_A = buy_A + 3'd1;
+                         next_buy_A = buy_A + 3'd1;                                          
                      end
                      else begin
-                         next_buy_A = 3'd0;
+                        next_buy_A = 3'd0;                   
                      end
                  end
-            //     if(drinkA_pulse) begin
-            //         next_AN2 = 4'd0;
-            //         next_AN3 = 4'd2;
-            //         if(enough_A) begin
-            //             next_buy_A = buy_A + 2'd1;
-            //             next_buy_B = 2'd0;
-            //         end
-            //         else begin
-            //             next_buy_A = 2'd1;
-            //             next_buy_B = 2'd0;
-            //         end
-            //     end
-            //     else begin
-            //         if(drinkB_pulse) begin
-            //             next_AN2 = 4'd5;
-            //             next_AN3 = 4'd2;
-            //             if(enough_B) begin
-            //                 next_buy_A = 2'd0;
-            //                 next_buy_B = buy_B + 2'd1;
-            //             end
-            //             else begin
-            //                 next_buy_A = 2'd0;
-            //                 next_buy_B = 2'd1;
-            //             end
-            //         end
-            //         else begin
-            //             next_AN2 = AN2;
-            //             next_AN3 = AN3;
-            //             next_buy_A = buy_A;
-            //             next_buy_B = buy_B;
-            //         end
-            //     end
-                
-            //     next_drop_money = {10{1'b0}};
-            // end
-            `AMOUNT: begin
-                    next_AN0 = AN0;
-                    next_AN1 = AN1;
-                    next_AN2 = AN2;
-                    next_AN3 = AN3;
-                    max = AN2;
-                    min = 1'b1;
-
-                    if(cancel_pulse || one_pulse) begin
+             end
+            `AMOUNT: begin                                 
+                    next_max = temp_AN2;                   
+                    max_temp = temp_AN2;
+                    min = 4'd1;
+                    
+                    if(cancel_pulse) begin
                         next_state = `CHANGE;
-                        // enough_A = 1'd0;
-                        // enough_B = 1'd0;
                         temp_AN0 = AN0;
                         temp_AN1 = AN1;
                     end
+                    else if(buy_A == 3'd2) begin
+                        next_state = `RELEASE; 
+                         temp_AN0 = AN0;
+                         temp_AN1 = AN1;           
+                         temp_AN2 = AN2;
+                         temp_AN3 = AN3;         
+                    end
                     else begin
-                        if(count_pulse) begin      
-                            next_max = max-1;                
-                                if(max == min) begin
-                                    next_max = 7;
-                                end
-                                next_AN2 = max;
-                        end
-                        else if(check_pulse) begin
-                            next_state = `RELEASE;
-                            next_buy_A = buy_A + 3'd1;
-                        end
-
-                end
+                        next_state = state;
+                    end
                     
-
+                    if(count_pulse) begin                                       
+                               if(max == 4'd1) begin
+                                   // next_max = max_temp;
+                                    next_AN2 = max_temp;
+                                    next_buy_A = 4'd1;
+                                end
+                                else begin                                
+                                   // next_max = max-1; 
+                                    next_AN2 = max;
+                                    next_buy_A = 4'd1;
+                                end  
+                             // next_AN2 = max;                            
+                     end
+                     if(check_pulse) begin
+                            next_buy_A = buy_A + 3'd1;                        
+                     end                  
             end
-            `RELEASE: begin
-                if(buy_A == 3'd2) begin
-
-                    LED = 16'hFFFF;
-                    next_AN0 = `R;
-                    next_AN1 = `E;
-                    next_AN2 = `E;
-                    next_AN3 = `B;
-                    temp_AN0 = (((AN1*10) + AN0)/AN2)%10; //AN0
-                    temp_AN1 =  (((AN1*10) + AN0)/AN2)/10;//AN1 - 4'd2
-                end
-                // else if(buy_B == 2'd2) begin
-                //     next_AN0 = 4'd8;
-                //     next_AN1 = `S;
-                //     next_AN2 = `U;
-                //     next_AN3 = `J;
-                //     if(AN0 == 4'd0) begin
-                //         temp_AN0 = 4'd5;
-                //         temp_AN1 = AN1 - 4'd3;
-                //     end
-                //     else begin
-                //         temp_AN0 = 4'd0;
-                //         temp_AN1 = AN1 - 4'd2;
-                //     end
-                // end
-                if(one_pulse) begin
-                    next_state = `CHANGE;
-                end               
+            `RELEASE: begin   
+                       
+                    BALANCE = ((AN1*10) + AN0)-(AN2*5);
+                  
+                        LED = 16'hFFFF;
+                        next_AN0 = `R;
+                        next_AN1 = `E;
+                        next_AN2 = `E;
+                        next_AN3 = `B;
+                        temp_AN1= BALANCE%10;
+                        temp_AN0= BALANCE/10;
+//                        temp_AN0 = BALANCE%10; //AN0
+//                        temp_AN1 = BALANCE/10;//AN1 - 4'd2                   
+                                        
+                next_state = `CHANGE;                                                                                                           
             end
             `CHANGE: begin
                 LED = 16'h0000;
@@ -453,19 +356,16 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
                 if(temp_AN1 > 0) begin
                     temp_AN0 = temp_AN0;
                     temp_AN1 = temp_AN1 - 4'd1;
-                    // next_drop_money = {10{1'd1}};
                     next_state = state;
                 end
                 else if(temp_AN0 > 0) begin
                     temp_AN0 = temp_AN0 - 4'd5;
                     temp_AN1 = 4'd0;
-                    // next_drop_money = 10'b1111100000;
                     next_state = state;
                 end
                 else begin
                     temp_AN0 = temp_AN0;
                     temp_AN1 = temp_AN1;
-                    // next_drop_money = {10{1'd0}};
                     next_state = `INITIAL;
                 end
             end
