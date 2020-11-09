@@ -6,7 +6,6 @@
 `define RELEASE 3'd3
 `define CHANGE 3'd4
 
-
 `define M 4'd10
 `define A 4'd11
 `define S 4'd12
@@ -86,7 +85,8 @@ module lab05(clk, rst, money_5, money_10, cancel,check, count_down, LED, DIGIT, 
     reg [2:0] state, next_state, buy_A, next_buy_A; 
     reg [29:0] ms_count;
     reg [29:0] ms_count2;
-    reg flag_remaining ;
+    reg flag_remaining, flag, next_flag, flag_temp;
+    reg[2:0] flag2;
     
     
     
@@ -115,7 +115,7 @@ module lab05(clk, rst, money_5, money_10, cancel,check, count_down, LED, DIGIT, 
             ms_count <= 0;
             one_pulse <= 1;
         end
-        else if(five_pulse || ten_pulse || count_pulse || check_pulse || cancel_pulse || state != `DEPOSIT) begin 
+        else if(five_pulse || ten_pulse || count_pulse || check_pulse || cancel_pulse || state != `AMOUNT) begin 
             ms_count <= 0;
         end
         else begin
@@ -132,7 +132,8 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
             AN2 <= 4'd0;
             AN3 <= 4'd0;
             buy_A <= 4'd0;
-            max <=0;
+            max <=0;         
+            flag <= 1;
             state <= `INITIAL;
         end
         else begin
@@ -141,7 +142,8 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
             AN2 <= next_AN2;
             AN3 <= next_AN3;
             buy_A <= next_buy_A;
-            max <= next_max-1;            
+            max <= next_max-1;           
+            flag <= next_flag;        
             state <= next_state;
         end
     end
@@ -191,8 +193,7 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
        endcase
     end
     
-    always@(posedge state_clk) begin
-
+    always@(posedge state_clk) begin      
         case(state)
             `INITIAL: begin
                 next_AN0 = 4'd0;
@@ -264,7 +265,7 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
                     next_AN3 = AN3;
                 end
 
-                if(cancel_pulse || one_pulse) begin 
+                if(cancel_pulse) begin 
                     next_state = `CHANGE;
                     temp_AN0 = AN0;
                     temp_AN1 = AN1;
@@ -291,7 +292,7 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
                     max_temp = temp_AN2;
                     
                     
-                    if(cancel_pulse) begin
+                    if(cancel_pulse || one_pulse) begin
                         next_state = `CHANGE;
                         temp_AN0 = AN0;
                         temp_AN1 = AN1;
@@ -301,7 +302,8 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
                          temp_AN0 = AN0;
                          temp_AN1 = AN1;           
                          temp_AN2 = AN2;
-                         temp_AN3 = AN3;         
+                         temp_AN3 = AN3;                         
+                         flag_temp = 1;   
                     end
                     else begin
                         next_state = state;
@@ -325,20 +327,33 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
                      end                  
             end
             `RELEASE: begin   
-                       
-                    BALANCE = ((AN1*10) + AN0)-(AN2*5);
-                  
+                  next_flag = flag_temp;   
+                  if(flag) begin 
+                     BALANCE = ((AN1*10) + AN0)-(AN2*5);
+                  end
+                   if(LED == 16'h0000 && flag2 <3) begin
                         LED = 16'hFFFF;
+                        flag2 = flag2 + 1;
+                   end
+                   else if(LED == 16'hFFFF && flag2 <3) begin
+                        LED = 16'h0000;
+                   end
+                   
+                   if(flag2 < 3) begin
                         next_AN0 = `K;
                         next_AN1 = `S;
                         next_AN2 = `A;
                         next_AN3 = `M;
                         temp_AN1= BALANCE/10;
                         temp_AN0= BALANCE%10;
-//                        temp_AN0 = BALANCE%10; //AN0
-//                        temp_AN1 = BALANCE/10;//AN1 - 4'd2                   
-                                        
-                next_state = `CHANGE;                                                                                                           
+                        next_flag = 0;
+                        next_state = `RELEASE;
+                   end
+                   else if(flag2 == 3) begin
+                        LED = 16'h0000;
+                        flag2 = 0;
+                        next_state = `CHANGE;  
+                   end                                                                                           
             end
             `CHANGE: begin
                 LED = 16'h0000;
