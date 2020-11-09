@@ -12,10 +12,10 @@
 `define CHANGE 3'd4
 
 
-`define B 4'd10
-`define E 4'd11
-`define R 4'd12
-`define J 4'd13
+`define M 4'd10
+`define A 4'd11
+`define S 4'd12
+`define K 4'd13
 `define U 4'd14
 `define S 4'd15
 
@@ -188,11 +188,11 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
             4'd7: DISPLAY = 7'b1111000;
             4'd8: DISPLAY = 7'b0000000;
             4'd9: DISPLAY = 7'b0010000;
-            `B: DISPLAY = 7'b0000011;
-            `E: DISPLAY = 7'b0000110;
-            `R: DISPLAY = 7'b0101111;
-            `J: DISPLAY = 7'b1110010;
-            `U: DISPLAY = 7'b1100011;
+            `M: DISPLAY = 7'b0101010;   //M          //7'b0000011
+            `A: DISPLAY = 7'b0100000;   //A          //7'b0000110
+            `S: DISPLAY = 7'b1010010;   //S          //7'b0101111
+            `K: DISPLAY = 7'b0001010;   //K          //7'b1110010
+            `U: DISPLAY = 7'b1100011;              
             `S: DISPLAY = 7'b1010010;
             default: DISPLAY = 7'b1111111;
        endcase
@@ -336,10 +336,10 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
                     BALANCE = ((AN1*10) + AN0)-(AN2*5);
                   
                         LED = 16'hFFFF;
-                        next_AN0 = `R;
-                        next_AN1 = `E;
-                        next_AN2 = `E;
-                        next_AN3 = `B;
+                        next_AN0 = `K;
+                        next_AN1 = `S;
+                        next_AN2 = `A;
+                        next_AN3 = `M;
                         temp_AN1= BALANCE%10;
                         temp_AN0= BALANCE/10;
 //                        temp_AN0 = BALANCE%10; //AN0
