@@ -12,7 +12,7 @@
 `define S 4'd12
 `define K 4'd13
 `define U 4'd14
-`define S 4'd15
+`define V 4'd15
 
 module clock_divider(clk, clk_div);
     parameter n = 13;
@@ -81,7 +81,7 @@ module lab05(clk, rst, money_5, money_10, cancel,check, count_down, LED, DIGIT, 
     
     reg one_pulse,one_pulse2; // state_clk
     wire state_clk;
-    reg [3:0] AN0, AN1, AN2, AN3, next_AN0, next_AN1, next_AN2, next_AN3, temp_AN0, temp_AN1,temp_AN2,temp_AN3,max, next_max, max_temp,min, BALANCE;
+    reg [3:0] AN0, AN1, AN2, AN3, next_AN0, next_AN1, next_AN2, next_AN3, temp_AN0, temp_AN1,temp_AN2,temp_AN3,max, next_max, max_temp,BALANCE;
     reg [3:0] value;
     reg [2:0] state, next_state, buy_A, next_buy_A; 
     reg [29:0] ms_count;
@@ -186,9 +186,7 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
             `M: DISPLAY = 7'b0101010;   //M          //7'b0000011
             `A: DISPLAY = 7'b0100000;   //A          //7'b0000110
             `S: DISPLAY = 7'b1010010;   //S          //7'b0101111
-            `K: DISPLAY = 7'b0001010;   //K          //7'b1110010
-            `U: DISPLAY = 7'b1100011;              
-            `S: DISPLAY = 7'b1010010;
+            `K: DISPLAY = 7'b0001010;   //K          //7'b1110010            
             default: DISPLAY = 7'b1111111;
        endcase
     end
@@ -289,9 +287,9 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
                  end
              end
             `AMOUNT: begin                                 
-                    next_max = temp_AN2;                   
+                    next_max = AN2;                   
                     max_temp = temp_AN2;
-                    min = 4'd1;
+                    
                     
                     if(cancel_pulse) begin
                         next_state = `CHANGE;
@@ -310,7 +308,7 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
                     end
                     
                     if(count_pulse) begin                                       
-                               if(max == 4'd1) begin
+                               if(max == 4'd0) begin
                                    // next_max = max_temp;
                                     next_AN2 = max_temp;
                                     next_buy_A = 4'd1;
@@ -335,8 +333,8 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
                         next_AN1 = `S;
                         next_AN2 = `A;
                         next_AN3 = `M;
-                        temp_AN1= BALANCE%10;
-                        temp_AN0= BALANCE/10;
+                        temp_AN1= BALANCE/10;
+                        temp_AN0= BALANCE%10;
 //                        temp_AN0 = BALANCE%10; //AN0
 //                        temp_AN1 = BALANCE/10;//AN1 - 4'd2                   
                                         
@@ -369,7 +367,3 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
     
 endmodule
 
-ga .
-gst
-gcmsg "Update"
-gp origin master
