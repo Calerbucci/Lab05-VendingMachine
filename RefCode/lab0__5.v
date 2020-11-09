@@ -1,10 +1,5 @@
 `timescale 1ns / 1ps
 
-// `define INITIAL 2'd0
-// `define DEPOSIT 2'd1
-// `define BUY 2'd2
-// `define CHANGE 2'd3
-
 `define INITIAL 3'd0
 `define DEPOSIT 3'd1
 `define AMOUNT 3'd2
@@ -373,3 +368,8 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
     end
     
 endmodule
+
+ga .
+gst
+gcmsg "Update"
+gp origin master
