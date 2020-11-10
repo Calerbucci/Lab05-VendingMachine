@@ -350,7 +350,7 @@ assign state_clk = (state == `INITIAL || state == `DEPOSIT || state == `AMOUNT) 
                         next_state = `RELEASE;
                    end
                    else if(flag2 == 3) begin
-                        LED = 16'h0000;
+                        LED = 16'hFFFF;
                         flag2 = 0;
                         next_state = `CHANGE;  
                    end                                                                                           
